@@ -1603,74 +1603,167 @@ padding: 34px 38px;
     const nextButton = document.getElementById("nextTrack");
     const slider = document.getElementById("volumeSlider");
     const audio = document.getElementById("portfolioAudio");
+
     if (!player || !hero || !toggle || !nextButton || !slider || !audio) return;
 
+    const NORMAL_VOLUME = 0.25;
+
     const tracks = [
-        { title: "Montagem Vozes Arigato (Slowed)", src: "montagem-vozes-arigato-slowed.mp3" },
-        { title: "FUNK TONTO (SLOWED)", src: "funk-tonto-slowed.mp3" }
+        {
+            title: "Montagem Vozes Arigato (Slowed)",
+            src: "montagem-vozes-arigato-slowed.mp3"
+        },
+        {
+            title: "FUNK TONTO (SLOWED)",
+            src: "funk-tonto-slowed.mp3"
+        }
     ];
 
     let trackIndex = 0;
-    let hasStarted = false;
+    let userMuted = false;
+    let autoplayBlocked = false;
+    let audioUnlocked = false;
 
     function updateVolumeVisual() {
         slider.style.setProperty("--volume", `${slider.value}%`);
     }
 
-    function loadTrack(index, shouldPlay = false) {
-        trackIndex = (index + tracks.length) % tracks.length;
-        audio.src = tracks[trackIndex].src;
-        audio.load();
-        player.title = tracks[trackIndex].title;
-        nextButton.title = `Next · Now playing: ${tracks[trackIndex].title}`;
-        if (shouldPlay) {
-            audio.play().then(() => {
-                hasStarted = true;
-            }).catch(() => {});
+    function syncMuteUI() {
+        toggle.classList.toggle("is-muted", userMuted);
+        slider.value = userMuted ? "0" : String(Math.round(NORMAL_VOLUME * 100));
+        updateVolumeVisual();
+    }
+
+    async function ensurePlaying() {
+        try {
+            await audio.play();
+            return true;
+        } catch (_) {
+            return false;
         }
     }
 
-    function nextTrack() {
-        const shouldPlay = !audio.paused || hasStarted;
-        loadTrack(trackIndex + 1, shouldPlay);
+    async function loadTrack(index, shouldPlay = true) {
+        trackIndex = (index + tracks.length) % tracks.length;
+
+        audio.src = tracks[trackIndex].src;
+        audio.preload = "auto";
+        audio.load();
+
+        player.title = tracks[trackIndex].title;
+        nextButton.title = `Next · Now playing: ${tracks[trackIndex].title}`;
+
+        audio.volume = userMuted ? 0 : NORMAL_VOLUME;
+        audio.muted = userMuted;
+
+        if (shouldPlay) {
+            await ensurePlaying();
+        }
     }
 
-    function toggleMute() {
-        // On touch layouts, tapping the icon also opens/closes the controls.
+    async function unlockAudioFromGesture() {
+        if (audioUnlocked && !audio.paused && !audio.muted) return;
+
+        // Respect an intentional mute by the user.
+        if (userMuted) {
+            audioUnlocked = true;
+            return;
+        }
+
+        audio.muted = false;
+        audio.volume = NORMAL_VOLUME;
+
+        const started = await ensurePlaying();
+
+        if (started) {
+            audioUnlocked = true;
+            autoplayBlocked = false;
+            slider.value = "25";
+            updateVolumeVisual();
+            removeUnlockListeners();
+        }
+    }
+
+    function addUnlockListeners() {
+        // Capture phase makes the unlock deterministic on the first real gesture.
+        document.addEventListener("pointerdown", unlockAudioFromGesture, true);
+        document.addEventListener("touchstart", unlockAudioFromGesture, true);
+        document.addEventListener("keydown", unlockAudioFromGesture, true);
+        document.addEventListener("click", unlockAudioFromGesture, true);
+    }
+
+    function removeUnlockListeners() {
+        document.removeEventListener("pointerdown", unlockAudioFromGesture, true);
+        document.removeEventListener("touchstart", unlockAudioFromGesture, true);
+        document.removeEventListener("keydown", unlockAudioFromGesture, true);
+        document.removeEventListener("click", unlockAudioFromGesture, true);
+    }
+
+    async function startAutoplay() {
+        audio.preload = "auto";
+        audio.volume = NORMAL_VOLUME;
+        audio.muted = false;
+
+        // First try normal audible autoplay.
+        const audibleStarted = await ensurePlaying();
+
+        if (audibleStarted) {
+            audioUnlocked = true;
+            autoplayBlocked = false;
+            return;
+        }
+
+        // Audible autoplay was blocked. Start muted so the audio is already
+        // buffered/running and can be unmuted instantly on the first gesture.
+        autoplayBlocked = true;
+        audio.muted = true;
+
+        try {
+            await audio.play();
+        } catch (_) {
+            // Even muted playback may be blocked on some browsers.
+            // The first user interaction will call unlockAudioFromGesture().
+        }
+
+        addUnlockListeners();
+    }
+
+    async function toggleMute(event) {
+        event.stopPropagation();
+
         if (window.matchMedia("(hover: none)").matches) {
             player.classList.toggle("open");
         }
 
-        // The mute button ONLY controls volume.
-        // First click: 0.25 -> 0
-        // Second click: 0 -> 0.25
-        const isMuted = audio.volume <= 0.001;
-
-        if (isMuted) {
-            audio.volume = 0.25;
-            slider.value = "25";
-            toggle.classList.remove("is-muted");
-
-            // If autoplay was blocked, unmuting is a user gesture,
-            // so start the already-loaded track here.
-            if (audio.paused) {
-                audio.play().then(() => {
-                    hasStarted = true;
-                }).catch(() => {});
-            }
-        } else {
-            audio.volume = 0;
-            slider.value = "0";
-            toggle.classList.add("is-muted");
+        // If the browser blocked autoplay, the first press on the music button
+        // must unlock the audio; otherwise there would still be nothing audible.
+        if (autoplayBlocked && !audioUnlocked) {
+            await unlockAudioFromGesture();
+            return;
         }
 
-        updateVolumeVisual();
+        userMuted = !userMuted;
+
+        if (userMuted) {
+            audio.volume = 0;
+            audio.muted = true;
+        } else {
+            audio.muted = false;
+            audio.volume = NORMAL_VOLUME;
+
+            if (audio.paused) {
+                await ensurePlaying();
+            }
+        }
+
+        syncMuteUI();
     }
 
     function movePlayerForAvailableSpace() {
         const viewport = window.innerWidth;
         const wrapperWidth = Math.min(Math.max(viewport - 40, 0), 1020);
         const sideSpace = Math.max((viewport - wrapperWidth) / 2, 0);
+
         const hasLeftSpace = sideSpace >= 78;
 
         if (hasLeftSpace) {
@@ -1679,53 +1772,76 @@ padding: 34px 38px;
             }
             player.classList.remove("in-card");
         } else {
-            if (player.parentElement !== hero) hero.appendChild(player);
+            if (player.parentElement !== hero) {
+                hero.appendChild(player);
+            }
             player.classList.add("in-card");
         }
     }
 
-    slider.addEventListener("input", () => {
-        audio.volume = Number(slider.value) / 100;
-        toggle.classList.toggle("is-muted", audio.volume <= 0.001);
+    slider.addEventListener("input", async () => {
+        const volume = Number(slider.value) / 100;
+
+        userMuted = volume <= 0.001;
+        audio.muted = userMuted;
+        audio.volume = volume;
+
+        toggle.classList.toggle("is-muted", userMuted);
         updateVolumeVisual();
 
-        if (audio.paused && audio.volume > 0) {
-            audio.play().then(() => {
-                hasStarted = true;
-            }).catch(() => {});
+        if (!userMuted && audio.paused) {
+            await ensurePlaying();
+        }
+
+        if (!userMuted) {
+            audioUnlocked = true;
+            autoplayBlocked = false;
+            removeUnlockListeners();
         }
     });
+
     toggle.addEventListener("click", toggleMute);
-    nextButton.addEventListener("click", (event) => {
+
+    nextButton.addEventListener("click", async (event) => {
         event.stopPropagation();
-        nextTrack();
+
+        // A click on Next is also a valid user gesture.
+        if (autoplayBlocked && !audioUnlocked) {
+            await unlockAudioFromGesture();
+        }
+
+        await loadTrack(trackIndex + 1, true);
     });
-    audio.addEventListener("ended", () => loadTrack(trackIndex + 1, true));
+
+    audio.addEventListener("ended", () => {
+        loadTrack(trackIndex + 1, true);
+    });
+
     document.addEventListener("pointerdown", (event) => {
-        if (!player.contains(event.target)) player.classList.remove("open");
+        if (!player.contains(event.target) && player.classList.contains("open")) {
+            player.classList.remove("open");
+        }
     });
+
     window.addEventListener("resize", movePlayerForAvailableSpace);
 
-    audio.volume = 0.25;
+    // Initial state.
+    audio.preload = "auto";
+    audio.volume = NORMAL_VOLUME;
+    audio.muted = false;
+
     slider.value = "25";
     updateVolumeVisual();
 
-    // First track is already assigned in the <audio> element so the browser
-    // can begin loading it before this script executes.
     trackIndex = 0;
     player.title = tracks[0].title;
     nextButton.title = `Next · Now playing: ${tracks[0].title}`;
 
     movePlayerForAvailableSpace();
 
-    // Try audible autoplay at 25%. Some browsers block this by policy.
-    // If blocked, the first click on the music icon starts it immediately.
-    audio.play().then(() => {
-        hasStarted = true;
-        toggle.classList.remove("is-muted");
-    }).catch(() => {
-        hasStarted = false;
-    });
+    // The <audio> tag already contains track 1 as its src, so the browser can
+    // start downloading it before this script reaches this point.
+    startAutoplay();
 })();
 </script>
 
