@@ -727,6 +727,239 @@ padding: 34px 38px;
         display: none;
     }
 }
+
+/* =========================================================
+   MUSIC PLAYER
+   Wide screens: floats left of the profile card and expands
+   horizontally. Tight screens: moves into the profile card
+   top-right and expands vertically downward.
+   ========================================================= */
+.hero { position: relative; }
+
+.music-player {
+    --player-size: 54px;
+    position: fixed;
+    top: 38px;
+    left: max(14px, calc(50vw - 510px - 70px));
+    z-index: 50;
+    width: var(--player-size);
+    height: var(--player-size);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.09);
+    background: rgba(21,22,29,.94);
+    box-shadow: 0 12px 34px rgba(0,0,0,.34);
+    transition:
+        width .62s cubic-bezier(.2,.8,.2,1) .08s,
+        height .62s cubic-bezier(.2,.8,.2,1) .08s,
+        border-radius .45s ease .08s,
+        background .25s ease;
+}
+
+.music-player:hover,
+.music-player:focus-within,
+.music-player.open {
+    width: 330px;
+    transition-duration: .24s;
+    transition-delay: 0s;
+    background: rgba(24,25,34,.98);
+}
+
+.music-main {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.music-icon {
+    width: var(--player-size);
+    height: var(--player-size);
+    flex: 0 0 var(--player-size);
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    background: transparent;
+    cursor: pointer;
+}
+
+.music-icon svg {
+    width: 23px;
+    height: 23px;
+    display: block;
+    transition: transform .18s ease, opacity .18s ease;
+}
+
+.music-icon:hover svg { transform: scale(1.08); }
+.music-icon:not(.is-playing) svg { opacity: .72; }
+
+.music-controls {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding-right: 12px;
+    opacity: 0;
+    transform: translateX(-10px);
+    pointer-events: none;
+    transition: opacity .15s ease, transform .22s ease;
+}
+
+.music-player:hover .music-controls,
+.music-player:focus-within .music-controls,
+.music-player.open .music-controls {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    transition-delay: .08s;
+}
+
+.volume-wrap {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.volume-slider {
+    --volume: 35%;
+    width: 100%;
+    height: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+    background: linear-gradient(
+        to right,
+        #fff 0%,
+        #fff var(--volume),
+        rgba(255,255,255,.18) var(--volume),
+        rgba(255,255,255,.18) 100%
+    );
+}
+
+.volume-slider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgba(0,0,0,.35);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgba(0,0,0,.35);
+}
+
+.music-next {
+    flex: 0 0 auto;
+    height: 34px;
+    padding: 0 13px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 999px;
+    background: rgba(255,255,255,.07);
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .16s ease, transform .16s ease;
+}
+
+.music-next:hover {
+    background: rgba(255,255,255,.13);
+    transform: translateY(-1px);
+}
+
+.music-player.in-card {
+    position: absolute;
+    top: 15px;
+    right: 16px;
+    left: auto;
+    width: var(--player-size);
+    height: var(--player-size);
+    flex-direction: column;
+}
+
+.music-player.in-card:hover,
+.music-player.in-card:focus-within,
+.music-player.in-card.open {
+    width: var(--player-size);
+    height: 186px;
+    border-radius: 27px;
+}
+
+.music-player.in-card .music-main { flex-direction: column; }
+
+.music-player.in-card .music-controls {
+    width: 100%;
+    flex: 1;
+    padding: 0 0 10px;
+    flex-direction: column;
+    gap: 10px;
+    transform: translateY(-8px);
+}
+
+.music-player.in-card:hover .music-controls,
+.music-player.in-card:focus-within .music-controls,
+.music-player.in-card.open .music-controls {
+    transform: translateY(0);
+}
+
+.music-player.in-card .volume-wrap {
+    width: 54px;
+    flex: 1;
+    justify-content: center;
+}
+
+.music-player.in-card .volume-slider {
+    width: 68px;
+    flex: 0 0 68px;
+    transform: rotate(-90deg);
+}
+
+.music-player.in-card .music-next {
+    width: 44px;
+    height: 30px;
+    padding: 0;
+    font-size: 10px;
+}
+
+@media (max-width: 570px) {
+    .music-player.in-card {
+        top: 10px;
+        right: 10px;
+        --player-size: 48px;
+    }
+
+    .music-player.in-card:hover,
+    .music-player.in-card:focus-within,
+    .music-player.in-card.open {
+        height: 174px;
+        border-radius: 24px;
+    }
+
+    .music-player.in-card .volume-wrap { width: 48px; }
+    .music-player.in-card .music-next { width: 40px; }
+}
+
 </style>
 </head>
 
@@ -784,6 +1017,29 @@ padding: 34px 38px;
     </div></div>
 
 </div>
+
+
+<!-- MUSIC PLAYER -->
+<div class="music-player" id="musicPlayer">
+    <div class="music-main">
+        <button class="music-icon" id="musicToggle" type="button"
+                aria-label="Play or pause music" title="Play / Pause">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor"
+                      d="M9 18V5.6c0-.68.46-1.27 1.12-1.44l7-1.82A1.5 1.5 0 0 1 19 3.79V15.5a3.5 3.5 0 1 1-2-3.16V7.09l-6 1.56V18.5A3.5 3.5 0 1 1 9 18Z"/>
+            </svg>
+        </button>
+
+        <div class="music-controls">
+            <div class="volume-wrap">
+                <input class="volume-slider" id="volumeSlider" type="range"
+                       min="0" max="100" value="50" aria-label="Music volume">
+            </div>
+            <button class="music-next" id="nextTrack" type="button">Next</button>
+        </div>
+    </div>
+</div>
+<audio id="portfolioAudio" preload="metadata"></audio>
 
 <div class="wrapper">
 
@@ -1320,6 +1576,127 @@ padding: 34px 38px;
 
     // Also refresh current stats every 60 seconds while the page stays open.
     setInterval(refreshLiveStats, 60_000);
+})();
+</script>
+
+
+<script>
+(() => {
+    const player = document.getElementById("musicPlayer");
+    const hero = document.querySelector(".hero");
+    const toggle = document.getElementById("musicToggle");
+    const nextButton = document.getElementById("nextTrack");
+    const slider = document.getElementById("volumeSlider");
+    const audio = document.getElementById("portfolioAudio");
+    if (!player || !hero || !toggle || !nextButton || !slider || !audio) return;
+
+    const tracks = [
+        { title: "Montagem Vozes Arigato (Slowed)", src: "montagem-vozes-arigato-slowed.mp3" },
+        { title: "FUNK TONTO (SLOWED)", src: "funk-tonto-slowed.mp3" }
+    ];
+
+    let trackIndex = 0;
+    let hasStarted = false;
+
+    function updateVolumeVisual() {
+        slider.style.setProperty("--volume", `${slider.value}%`);
+    }
+
+    function loadTrack(index, shouldPlay = false) {
+        trackIndex = (index + tracks.length) % tracks.length;
+        audio.src = tracks[trackIndex].src;
+        audio.load();
+        player.title = tracks[trackIndex].title;
+        nextButton.title = `Next · Now playing: ${tracks[trackIndex].title}`;
+        if (shouldPlay) {
+            audio.play().then(() => {
+                hasStarted = true;
+            }).catch(() => {});
+        }
+    }
+
+    function nextTrack() {
+        const shouldPlay = !audio.paused || hasStarted;
+        loadTrack(trackIndex + 1, shouldPlay);
+    }
+
+    function toggleMute() {
+        // On touch layouts, tapping the icon also opens/closes the controls.
+        if (window.matchMedia("(hover: none)").matches) {
+            player.classList.toggle("open");
+        }
+
+        if (!audio.src) {
+            loadTrack(trackIndex, false);
+        }
+
+        // If autoplay was blocked, this user gesture is allowed to start playback.
+        if (audio.paused) {
+            audio.play()
+                .then(() => {
+                    hasStarted = true;
+                })
+                .catch(() => {});
+        }
+
+        const isMuted = audio.volume <= 0.001;
+
+        if (isMuted) {
+            audio.volume = 0.5;
+            slider.value = "50";
+            toggle.classList.remove("is-muted");
+        } else {
+            audio.volume = 0;
+            slider.value = "0";
+            toggle.classList.add("is-muted");
+        }
+
+        updateVolumeVisual();
+    }
+
+    function movePlayerForAvailableSpace() {
+        const viewport = window.innerWidth;
+        const wrapperWidth = Math.min(Math.max(viewport - 40, 0), 1020);
+        const sideSpace = Math.max((viewport - wrapperWidth) / 2, 0);
+        const hasLeftSpace = sideSpace >= 78;
+
+        if (hasLeftSpace) {
+            if (player.parentElement !== document.body) {
+                document.body.insertBefore(player, document.querySelector(".wrapper"));
+            }
+            player.classList.remove("in-card");
+        } else {
+            if (player.parentElement !== hero) hero.appendChild(player);
+            player.classList.add("in-card");
+        }
+    }
+
+    slider.addEventListener("input", () => {
+        audio.volume = Number(slider.value) / 100;
+        toggle.classList.toggle("is-muted", audio.volume <= 0.001);
+        updateVolumeVisual();
+    });
+    toggle.addEventListener("click", toggleMute);
+    nextButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        nextTrack();
+    });
+    audio.addEventListener("ended", () => loadTrack(trackIndex + 1, true));
+    document.addEventListener("pointerdown", (event) => {
+        if (!player.contains(event.target)) player.classList.remove("open");
+    });
+    window.addEventListener("resize", movePlayerForAvailableSpace);
+
+    audio.volume = 0.5;
+    slider.value = "50";
+    updateVolumeVisual();
+    loadTrack(0, false);
+    movePlayerForAvailableSpace();
+
+    // Try autoplay. If the browser blocks sound autoplay, clicking the icon starts it.
+    audio.play().then(() => {
+        hasStarted = true;
+    }).catch(() => {});
 })();
 </script>
 
