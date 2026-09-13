@@ -103,7 +103,6 @@ a {
         );
     box-shadow:
         inset 0 1px 0 rgba(255,255,255,.11);
-    -webkit-
     backface-visibility: visible;
 }
 
@@ -268,7 +267,6 @@ a {
         var(--panel);
     border: 1px solid rgba(255,255,255,.055);
     box-shadow: 0 22px 60px rgba(0,0,0,.34);
-    -webkit-
 }
 
 .hero-left {
@@ -394,8 +392,9 @@ h1 {
 
 .game-card {
     display: grid;
-    grid-template-columns: 1.22fr .88fr;
-    min-height: 0;
+    grid-template-columns: 58% 42%;
+    height: 340px;
+    min-height: 340px;
     overflow: hidden;
     margin-bottom: 24px;
     border-radius: 36px;
@@ -407,25 +406,28 @@ h1 {
 
     border: 1px solid rgba(255,255,255,.055);
     box-shadow: 0 18px 42px rgba(0,0,0,.26);
-    -webkit-
 }
 
 .game-image {
     position: relative;
+    width: 100%;
+    height: 100%;
     min-width: 0;
     min-height: 0;
-    aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: #101116;
+    background: #0d0e13;
 }
 
 .game-image img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
+    object-position: center;
     opacity: 1;
-    background: #101116;
+    background: #0d0e13;
 }
 
 .game-image-placeholder {
@@ -439,19 +441,21 @@ h1 {
     color: rgba(255,255,255,.36);
     font-size: 18px;
     letter-spacing: .14em;
-    background:
-        linear-gradient(135deg, #171923, #101116);
+    background: #0d0e13;
+    width: 100%;
+    height: 100%;
 }
 
 .game-info {
-    padding: 34px 38px;
+    min-width: 0;
+padding: 34px 38px;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
 .game-title {
-    width: max-content;
+    width: auto;
     max-width: 100%;
     display: inline-block;
     margin-bottom: 25px;
@@ -462,6 +466,8 @@ h1 {
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: color .18s ease, border-color .18s ease;
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .game-title:hover {
@@ -471,12 +477,20 @@ h1 {
 
 .game-role {
     margin-top: -14px;
-    margin-bottom: 22px;
+    margin-bottom: 15px;
     color: #a1a3ad;
+
+    /* Keep original layout size, scale visually to 1.25x */
     font-size: 14px;
+    line-height: 1;
     font-weight: 700;
     letter-spacing: .10em;
     text-transform: uppercase;
+    display: inline-block;
+    align-self: flex-start;
+    white-space: nowrap;
+    transform: scale(1.25);
+    transform-origin: left center;
 }
 
 .stat-row {
@@ -484,7 +498,7 @@ h1 {
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    padding: 13px 0;
+    padding: 9px 0;
     border-bottom: 1px solid rgba(255,255,255,.07);
 }
 
@@ -599,23 +613,8 @@ h1 {
 }
 
 
-.live-status {
-    margin-right: 8px;
-    color: #6f707a;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
 
-.live-status.ok {
-    color: #8fa99a;
-}
 
-.live-status.error {
-    color: #b88989;
-}
 
 .game-image img {
     opacity: 1;
@@ -628,9 +627,6 @@ h1 {
 }
 
 @media (max-width: 570px) {
-    .live-status {
-        display: none;
-    }
 }
 
 /* =========================================================
@@ -661,6 +657,13 @@ h1 {
 
     .game-card {
         grid-template-columns: 1fr;
+        height: auto;
+        min-height: 0;
+    }
+
+    .game-image {
+        height: auto;
+        aspect-ratio: 16 / 9;
     }
 
     .game-info {
@@ -798,9 +801,10 @@ h1 {
             <h1>SoneBuilder</h1>
 
             <div class="intro">
-                Hello, I'm a Roblox developer and game owner focused on creating
-                polished Roblox experiences, systems, maps, UI and gameplay.
-                Here's a selection of my accounts and projects.
+                Hello, I'm a Roblox developer. I joined Roblox in 2017 and started
+                creating games in 2024. I have a lot of game development skills,
+                including scripting, UI design, building, modeling, and animating.
+                Most of the games listed here were made by me.
             </div>
 
         </div>
@@ -864,8 +868,7 @@ h1 {
 
         <div class="sort-bar">
             <div class="sort-controls" role="group" aria-label="Sort games">
-                <span class="live-status" id="liveStatus">Loading live stats…</span>
-                <span class="sort-label">Sort</span>
+<span class="sort-label">Sort</span>
                 <button class="sort-btn active" type="button" data-sort="default">Default</button>
                 <button class="sort-btn" type="button" data-sort="ccu">CCU</button>
                 <button class="sort-btn" type="button" data-sort="visits">Visits</button>
@@ -894,22 +897,32 @@ h1 {
     const GAMES = [
         {
             placeId: "72566191171643",
+            nameOverride: "Tanks vs Zombies",
+            peakCcu: 280,
             url: "https://www.roblox.com/games/72566191171643/Tanks-vs-Zombies",
             role: "Owner · Developer"
         },
         {
             placeId: "17544860425",
+            universeId: "6005988649",
+            peakCcu: 1800,
             url: "https://www.roblox.com/games/17544860425/Skibidi-Box-Defense",
             role: "Owner · Developer",
             nameOverride: "Skibidi Box Defense"
         },
         {
             placeId: "130206397990432",
+            nameOverride: "Everybody do the Flop!",
+            universeId: "8047412155",
+            peakCcu: 2100,
             url: "https://www.roblox.com/games/130206397990432/Everybody-do-the-Flop",
             role: "Owner · Developer"
         },
         {
             placeId: "120362482242403",
+            nameOverride: "The Noob Experiment TD",
+            universeId: "9995767809",
+            peakCcu: 3450,
             url: "https://www.roblox.com/games/120362482242403/The-Noob-Experiment-TD",
             role: "Past Scripter",
             pinLast: true
@@ -917,20 +930,28 @@ h1 {
     ];
 
     const list = document.getElementById("gamesList");
-    const status = document.getElementById("liveStatus");
     const sortButtons = [...document.querySelectorAll(".sort-btn")];
 
     let currentSort = "default";
     let gameState = GAMES.map(game => ({
         ...game,
-        universeId: null,
+        universeId: game.universeId || null,
         name: "Loading…",
         visits: 0,
         ccu: 0,
+        peakCcu: game.peakCcu ?? null,
         likes: 0,
         created: "",
         thumbnail: ""
     }));
+
+    /*
+      =========================================================
+      ROBLOX API THROUGH ROPROXY ONLY
+      GitHub Pages is static, so all Roblox API calls are routed
+      through RoProxy to avoid browser CORS issues.
+      =========================================================
+    */
 
     const API = {
         universeFromPlace: placeId =>
@@ -939,24 +960,41 @@ h1 {
         gameDetails: universeIds =>
             `https://games.roblox.com/v1/games?universeIds=${universeIds.join(",")}`,
 
-        votes: universeIds =>
-            `https://games.roblox.com/v1/games/votes?universeIds=${universeIds.join(",")}`,
+        vote: universeId =>
+            `https://games.roblox.com/v1/games/${universeId}/votes`,
 
         thumbnails: universeIds =>
-            `https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${universeIds.join(",")}&countPerUniverse=1&defaults=true&size=768x432&format=Webp&isCircular=false`
+            `https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${universeIds.join(",")}&countPerUniverse=1&defaults=true&size=768x432&format=Png&isCircular=false`
     };
 
-    async function fetchJson(url) {
-        const response = await fetch(url, {
-            method: "GET",
-            cache: "no-store"
-        });
+    function toRoProxy(robloxUrl) {
+        const url = new URL(robloxUrl);
+        url.hostname = url.hostname.replace(/\.roblox\.com$/i, ".roproxy.com");
+        return url.toString();
+    }
 
-        if (!response.ok) {
-            throw new Error(`${response.status} ${response.statusText}`);
+    async function fetchJson(robloxUrl) {
+        const requestUrl = toRoProxy(robloxUrl);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        try {
+            const response = await fetch(requestUrl, {
+                method: "GET",
+                cache: "no-store",
+                mode: "cors",
+                signal: controller.signal
+            });
+
+            if (!response.ok) {
+                throw new Error(`${response.status} ${response.statusText}`);
+            }
+
+            return await response.json();
+        } finally {
+            clearTimeout(timeout);
         }
-
-        return response.json();
     }
 
     function escapeHtml(value) {
@@ -1089,6 +1127,11 @@ h1 {
                         </div>
 
                         <div class="stat-row">
+                            <span class="stat-label">Peak CCU</span>
+                            <span class="stat-value">${game.peakCcu != null ? `${fullNumber(game.peakCcu)} CCU` : "—"}</span>
+                        </div>
+
+                        <div class="stat-row">
                             <span class="stat-label">Created</span>
                             <span class="stat-value">${formatDate(game.created)}</span>
                         </div>
@@ -1099,16 +1142,29 @@ h1 {
     }
 
     async function resolveUniverses() {
+        const unresolved = gameState.filter(game => !game.universeId);
+
+        if (!unresolved.length) {
+            return;
+        }
+
         const resolved = await Promise.all(
-            gameState.map(async game => {
+            unresolved.map(async game => {
                 try {
-                    const data = await fetchJson(API.universeFromPlace(game.placeId));
+                    const data = await fetchJson(
+                        API.universeFromPlace(game.placeId)
+                    );
+
                     return {
                         placeId: game.placeId,
                         universeId: String(data.universeId)
                     };
                 } catch (error) {
-                    console.error(`Universe lookup failed for ${game.placeId}`, error);
+                    console.error(
+                        `Universe lookup failed for ${game.placeId}`,
+                        error
+                    );
+
                     return {
                         placeId: game.placeId,
                         universeId: null
@@ -1123,13 +1179,14 @@ h1 {
 
         gameState = gameState.map(game => ({
             ...game,
-            universeId: byPlace.get(game.placeId) || game.universeId
+            universeId:
+                game.universeId
+                || byPlace.get(game.placeId)
+                || null
         }));
     }
 
     async function refreshLiveStats() {
-        status.textContent = "Refreshing…";
-        status.className = "live-status";
 
         try {
             // Universe IDs only need to be resolved once during this page session.
@@ -1144,19 +1201,15 @@ h1 {
                 throw new Error("Could not resolve any universe IDs.");
             }
 
-            const [detailsResult, votesResult, thumbnailsResult] =
+            const [detailsResult, thumbnailsResult, ...voteResults] =
                 await Promise.allSettled([
                     fetchJson(API.gameDetails(universeIds)),
-                    fetchJson(API.votes(universeIds)),
-                    fetchJson(API.thumbnails(universeIds))
+                    fetchJson(API.thumbnails(universeIds)),
+                    ...universeIds.map(id => fetchJson(API.vote(id)))
                 ]);
 
             const details = detailsResult.status === "fulfilled"
                 ? (detailsResult.value.data || [])
-                : [];
-
-            const votes = votesResult.status === "fulfilled"
-                ? (votesResult.value.data || [])
                 : [];
 
             const thumbnails = thumbnailsResult.status === "fulfilled"
@@ -1167,9 +1220,15 @@ h1 {
                 details.map(item => [String(item.id), item])
             );
 
-            const votesById = new Map(
-                votes.map(item => [String(item.id), item])
-            );
+            // RoProxy's batch votes endpoint is unreliable, so fetch
+            // /v1/games/{universeId}/votes individually.
+            const votesById = new Map();
+
+            voteResults.forEach((result, index) => {
+                if (result.status === "fulfilled") {
+                    votesById.set(String(universeIds[index]), result.value);
+                }
+            });
 
             const thumbnailById = new Map();
 
@@ -1191,11 +1250,14 @@ h1 {
                 const detail = detailsById.get(id);
                 const vote = votesById.get(id);
 
+                const currentCcu = Number(detail?.playing ?? game.ccu ?? 0);
+
                 return {
                     ...game,
                     name: game.nameOverride || detail?.name || game.name,
                     visits: Number(detail?.visits ?? game.visits ?? 0),
-                    ccu: Number(detail?.playing ?? game.ccu ?? 0),
+                    ccu: currentCcu,
+                    peakCcu: game.peakCcu,
                     likes: Number(vote?.upVotes ?? game.likes ?? 0),
                     created: detail?.created ?? game.created ?? "",
                     thumbnail: thumbnailById.get(id) || game.thumbnail || ""
@@ -1204,32 +1266,36 @@ h1 {
 
             renderGames();
 
+            const anyVoteFailure =
+                voteResults.some(result => result.status === "rejected");
+
             const anyFailure =
                 detailsResult.status === "rejected"
-                || votesResult.status === "rejected"
-                || thumbnailsResult.status === "rejected";
+                || thumbnailsResult.status === "rejected"
+                || anyVoteFailure;
 
             if (anyFailure) {
-                status.textContent = "Partially live";
-                status.className = "live-status error";
 
                 if (detailsResult.status === "rejected") {
                     console.error("Game details request failed:", detailsResult.reason);
                 }
-                if (votesResult.status === "rejected") {
-                    console.error("Votes request failed:", votesResult.reason);
-                }
+
+                voteResults.forEach((result, index) => {
+                    if (result.status === "rejected") {
+                        console.error(
+                            `Votes request failed for universe ${universeIds[index]}:`,
+                            result.reason
+                        );
+                    }
+                });
+
                 if (thumbnailsResult.status === "rejected") {
                     console.error("Thumbnail request failed:", thumbnailsResult.reason);
                 }
             } else {
-                status.textContent = "Live";
-                status.className = "live-status ok";
             }
         } catch (error) {
             console.error("Roblox live refresh failed:", error);
-            status.textContent = "Stats unavailable";
-            status.className = "live-status error";
             renderGames();
         }
     }
