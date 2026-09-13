@@ -93,18 +93,29 @@ a {
     position: absolute;
     width: var(--size);
     height: var(--size);
-    border: 1px solid rgba(255,255,255,.16);
+
+    border: 1px solid rgba(255, 214, 92, .34);
+
     background:
         linear-gradient(
-            135deg,
-            rgba(255,255,255,.075) 0%,
-            rgba(255,255,255,.018) 42%,
-            rgba(255,255,255,.045) 100%
+            145deg,
+            rgba(255, 244, 190, .16) 0%,
+            rgba(255, 215, 90, .09) 24%,
+            rgba(255, 186, 25, .045) 48%,
+            rgba(120, 72, 0, .035) 70%,
+            rgba(255, 226, 125, .10) 100%
         );
+
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.11);
+        inset 0 1px 0 rgba(255, 247, 205, .30),
+        inset 1px 0 0 rgba(255, 217, 100, .12),
+        inset -1px 0 0 rgba(116, 69, 0, .08),
+        inset 0 -1px 0 rgba(104, 61, 0, .10);
+
     backface-visibility: visible;
 }
+
+
 
 /* each face is physically positioned in 3D */
 .front  { transform: translateZ(calc(var(--size) / 2)); }
@@ -829,7 +840,7 @@ padding: 34px 38px;
 }
 
 .volume-slider {
-    --volume: 35%;
+    --volume: 25%;
     width: 100%;
     height: 4px;
     appearance: none;
@@ -960,7 +971,11 @@ padding: 34px 38px;
     .music-player.in-card .music-next { width: 40px; }
 }
 
+
+
 </style>
+<link rel="preload" href="montagem-vozes-arigato-slowed.mp3" as="audio">
+<link rel="preload" href="funk-tonto-slowed.mp3" as="audio">
 </head>
 
 <body>
@@ -1023,7 +1038,7 @@ padding: 34px 38px;
 <div class="music-player" id="musicPlayer">
     <div class="music-main">
         <button class="music-icon" id="musicToggle" type="button"
-                aria-label="Play or pause music" title="Play / Pause">
+                aria-label="Mute or unmute music" title="Mute / Unmute">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="currentColor"
                       d="M9 18V5.6c0-.68.46-1.27 1.12-1.44l7-1.82A1.5 1.5 0 0 1 19 3.79V15.5a3.5 3.5 0 1 1-2-3.16V7.09l-6 1.56V18.5A3.5 3.5 0 1 1 9 18Z"/>
@@ -1033,13 +1048,13 @@ padding: 34px 38px;
         <div class="music-controls">
             <div class="volume-wrap">
                 <input class="volume-slider" id="volumeSlider" type="range"
-                       min="0" max="100" value="50" aria-label="Music volume">
+                       min="0" max="100" value="25" aria-label="Music volume">
             </div>
             <button class="music-next" id="nextTrack" type="button">Next</button>
         </div>
     </div>
 </div>
-<audio id="portfolioAudio" preload="metadata"></audio>
+<audio id="portfolioAudio" preload="auto" autoplay playsinline src="montagem-vozes-arigato-slowed.mp3"></audio>
 
 <div class="wrapper">
 
@@ -1626,25 +1641,23 @@ padding: 34px 38px;
             player.classList.toggle("open");
         }
 
-        if (!audio.src) {
-            loadTrack(trackIndex, false);
-        }
-
-        // If autoplay was blocked, this user gesture is allowed to start playback.
-        if (audio.paused) {
-            audio.play()
-                .then(() => {
-                    hasStarted = true;
-                })
-                .catch(() => {});
-        }
-
+        // The mute button ONLY controls volume.
+        // First click: 0.25 -> 0
+        // Second click: 0 -> 0.25
         const isMuted = audio.volume <= 0.001;
 
         if (isMuted) {
-            audio.volume = 0.5;
-            slider.value = "50";
+            audio.volume = 0.25;
+            slider.value = "25";
             toggle.classList.remove("is-muted");
+
+            // If autoplay was blocked, unmuting is a user gesture,
+            // so start the already-loaded track here.
+            if (audio.paused) {
+                audio.play().then(() => {
+                    hasStarted = true;
+                }).catch(() => {});
+            }
         } else {
             audio.volume = 0;
             slider.value = "0";
@@ -1675,6 +1688,12 @@ padding: 34px 38px;
         audio.volume = Number(slider.value) / 100;
         toggle.classList.toggle("is-muted", audio.volume <= 0.001);
         updateVolumeVisual();
+
+        if (audio.paused && audio.volume > 0) {
+            audio.play().then(() => {
+                hasStarted = true;
+            }).catch(() => {});
+        }
     });
     toggle.addEventListener("click", toggleMute);
     nextButton.addEventListener("click", (event) => {
@@ -1687,16 +1706,26 @@ padding: 34px 38px;
     });
     window.addEventListener("resize", movePlayerForAvailableSpace);
 
-    audio.volume = 0.5;
-    slider.value = "50";
+    audio.volume = 0.25;
+    slider.value = "25";
     updateVolumeVisual();
-    loadTrack(0, false);
+
+    // First track is already assigned in the <audio> element so the browser
+    // can begin loading it before this script executes.
+    trackIndex = 0;
+    player.title = tracks[0].title;
+    nextButton.title = `Next · Now playing: ${tracks[0].title}`;
+
     movePlayerForAvailableSpace();
 
-    // Try autoplay. If the browser blocks sound autoplay, clicking the icon starts it.
+    // Try audible autoplay at 25%. Some browsers block this by policy.
+    // If blocked, the first click on the music icon starts it immediately.
     audio.play().then(() => {
         hasStarted = true;
-    }).catch(() => {});
+        toggle.classList.remove("is-muted");
+    }).catch(() => {
+        hasStarted = false;
+    });
 })();
 </script>
 
